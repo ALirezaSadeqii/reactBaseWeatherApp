@@ -6,6 +6,8 @@ const Weather = () => {
   const [weatherData, setWeatherData] = useState(null);
   const [location, setLocation] = useState('');
   const [cityInput, setCityInput] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [weatherCondition, setWeatherCondition] = useState('');
 
   const applyWeatherDesign = (weatherCondition) => {
     const body = document.body;
@@ -20,10 +22,23 @@ const Weather = () => {
     };
 
     const weatherClass = weatherClasses[weatherCondition] || 'default-weather';
-    body.classList.add(weatherClass);
+    setWeatherCondition(weatherCondition);
+    
+    // Force a repaint by removing and adding the class with a small delay
+    setTimeout(() => {
+      body.classList.add(weatherClass);
+      
+      // Add animation class to make transition smoother
+      setTimeout(() => {
+        body.classList.add('weather-transition');
+      }, 100);
+    }, 50);
+    
+    console.log(`Applied weather design: ${weatherClass} for condition: ${weatherCondition}`);
   };
 
   const getLocationByCoordinates = async () => {
+    setLoading(true);
     try {
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
@@ -62,10 +77,13 @@ const Weather = () => {
       document.dispatchEvent(event);
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const getWeatherByCity = async (city) => {
+    setLoading(true);
     try {
       const res = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=cea179dffc48165803610302c1237ef4`
@@ -85,6 +103,8 @@ const Weather = () => {
       document.dispatchEvent(event);
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,7 +115,17 @@ const Weather = () => {
   };
 
   useEffect(() => {
+    // Clear any existing classes
+    document.body.className = '';
+    
     getLocationByCoordinates();
+    
+    // Add CSS class for initial page load animation
+    document.body.classList.add('page-loaded');
+    
+    return () => {
+      document.body.classList.remove('page-loaded');
+    };
   }, []);
 
   return (
@@ -108,6 +138,7 @@ const Weather = () => {
               id="CityInput"
               type="text"
               name="city"
+              placeholder="Enter city name..."
               value={cityInput}
               onChange={(e) => setCityInput(e.target.value)}
               onKeyDown={handleCitySearch}
@@ -116,7 +147,23 @@ const Weather = () => {
           <ModeToggle />
         </div>
         <div className="weather-container">
-          {weatherData && <WeatherCard weatherData={weatherData} location={location} />}
+          {loading ? (
+            <div className="loading-indicator">
+              <div className="spinner"></div>
+              <p>Loading weather data...</p>
+            </div>
+          ) : (
+            weatherData && (
+              <>
+                <div className="current-condition">
+                  {weatherCondition && (
+                    <p>Current weather: <strong>{weatherCondition}</strong></p>
+                  )}
+                </div>
+                <WeatherCard weatherData={weatherData} location={location} />
+              </>
+            )
+          )}
         </div>
       </div>
     </div>

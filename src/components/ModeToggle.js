@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const ModeToggle = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const initializeToggle = () => {
     const darkButton = document.querySelector('.dark');
     const lightButton = document.querySelector('.light');
@@ -11,13 +13,36 @@ const ModeToggle = () => {
     const value = document.querySelectorAll('.detail-value');
     const temp = document.querySelector('.temperature-value');
     const tempture = document.querySelector('.temperature-description');
+    const loadingIndicator = document.querySelector('.loading-indicator');
 
     if (weatherCard && darkButton && lightButton) {
-      weatherCard.classList.add('lightback');
+      // Set initial state based on current mode
+      setIsDarkMode(weatherCard.classList.contains('darkback'));
+      
+      // Apply initial light mode if not already set
+      if (!weatherCard.classList.contains('darkback') && !weatherCard.classList.contains('lightback')) {
+        weatherCard.classList.add('lightback');
+      }
 
-      darkButton.addEventListener('click', function () {
-        weatherCard.classList.remove('lightback');
-        weatherCard.classList.add('darkback');
+      // Remove previous event listeners to prevent duplicates
+      const newDarkButton = darkButton.cloneNode(true);
+      const newLightButton = lightButton.cloneNode(true);
+      darkButton.parentNode.replaceChild(newDarkButton, darkButton);
+      lightButton.parentNode.replaceChild(newLightButton, lightButton);
+
+      newDarkButton.addEventListener('click', function () {
+        setIsDarkMode(true);
+        if (weatherCard) {
+          weatherCard.classList.remove('lightback');
+          weatherCard.classList.add('darkback');
+        }
+        
+        if (loadingIndicator) {
+          loadingIndicator.style.backgroundColor = 'rgba(31, 41, 55, 0.9)';
+          const loadingText = loadingIndicator.querySelector('p');
+          if (loadingText) loadingText.style.color = 'white';
+        }
+        
         item.forEach(detailItem => {
           detailItem.style.backgroundColor = '#3F3F3F';
           detailItem.style.boxShadow = 'none';
@@ -28,14 +53,24 @@ const ModeToggle = () => {
         value.forEach(values => {
           values.style.color = 'white';
         });
-        temp.style.color = 'white';
-        tempture.style.color = 'white';
-        h1.style.color = 'white';
+        if (temp) temp.style.color = 'white';
+        if (tempture) tempture.style.color = 'white';
+        if (h1) h1.style.color = 'white';
       });
 
-      lightButton.addEventListener('click', function () {
-        weatherCard.classList.remove('darkback');
-        weatherCard.classList.add('lightback');
+      newLightButton.addEventListener('click', function () {
+        setIsDarkMode(false);
+        if (weatherCard) {
+          weatherCard.classList.remove('darkback');
+          weatherCard.classList.add('lightback');
+        }
+        
+        if (loadingIndicator) {
+          loadingIndicator.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+          const loadingText = loadingIndicator.querySelector('p');
+          if (loadingText) loadingText.style.color = '#4b5563';
+        }
+        
         item.forEach(detailItem => {
           detailItem.style.backgroundColor = '#EFF6FFCC';
           detailItem.style.boxShadow =
@@ -47,19 +82,20 @@ const ModeToggle = () => {
         value.forEach(values => {
           values.style.color = '#1f2937';
         });
-        temp.style.color = '#1f2937';
-        tempture.style.color = '#4b5563';
-        h1.style.color = '#1f2937';
+        if (temp) temp.style.color = '#1f2937';
+        if (tempture) tempture.style.color = '#4b5563';
+        if (h1) h1.style.color = '#1f2937';
       });
     }
   };
 
   useEffect(() => {
-    initializeToggle();
+    // Initial toggle setup
+    setTimeout(initializeToggle, 100);
     
     // Add event listener for when weather card is inserted
     const handleWeatherCardInserted = () => {
-      initializeToggle();
+      setTimeout(initializeToggle, 100);
     };
     
     document.addEventListener('weatherCardInserted', handleWeatherCardInserted);
@@ -73,24 +109,24 @@ const ModeToggle = () => {
   return (
     <div className="modeSub">
       <svg
-        className="dark"
+        className={`dark ${isDarkMode ? 'active' : ''}`}
         xmlns="http://www.w3.org/2000/svg"
-        width="35"
-        height="35"
+        width="32"
+        height="32"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        viewBox="1 0 24 21"
+        viewBox="0 0 24 24"
       >
         <path d="M21 12.79A9 9 0 0 1 12.21 3 7 7 0 1 0 21 12.79z"></path>
       </svg>
       <svg
-        className="light"
+        className={`light ${!isDarkMode ? 'active' : ''}`}
         xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
+        width="32"
+        height="32"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
