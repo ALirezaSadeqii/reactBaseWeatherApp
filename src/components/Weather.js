@@ -8,6 +8,7 @@ const Weather = () => {
   const [cityInput, setCityInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [weatherCondition, setWeatherCondition] = useState('');
+  const [error, setError] = useState(null);
 
   const applyWeatherDesign = (weatherCondition) => {
     const body = document.body;
@@ -39,6 +40,7 @@ const Weather = () => {
 
   const getLocationByCoordinates = async () => {
     setLoading(true);
+    setError(null);
     try {
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
@@ -77,6 +79,7 @@ const Weather = () => {
       document.dispatchEvent(event);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError('Unable to get your location. Please try searching for a city instead.');
     } finally {
       setLoading(false);
     }
@@ -84,12 +87,16 @@ const Weather = () => {
 
   const getWeatherByCity = async (city) => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=cea179dffc48165803610302c1237ef4`
       );
       
       if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error('City not found. Please check the spelling and try again.');
+        }
         throw new Error(`Problem getting location: ${res.status}`);
       }
       
@@ -103,6 +110,7 @@ const Weather = () => {
       document.dispatchEvent(event);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError(error.message || 'Failed to get weather data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -112,6 +120,16 @@ const Weather = () => {
     if (e.key === 'Enter' && cityInput.trim() !== '') {
       getWeatherByCity(cityInput);
     }
+  };
+
+  const handleSearchClick = () => {
+    if (cityInput.trim() !== '') {
+      getWeatherByCity(cityInput);
+    }
+  };
+
+  const handleUseCurrentLocation = () => {
+    getLocationByCoordinates();
   };
 
   useEffect(() => {
@@ -132,20 +150,48 @@ const Weather = () => {
     <div className="weather-bg">
       <div className="stripes"></div>
       <div className="content">
-        <div className="mode">
-          <div>
+        <div className="search-container">
+          <div className="search-bar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="search-icon">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
             <input
               id="CityInput"
               type="text"
               name="city"
-              placeholder="Enter city name..."
+              placeholder="Search for a city..."
               value={cityInput}
               onChange={(e) => setCityInput(e.target.value)}
               onKeyDown={handleCitySearch}
             />
+            <button className="search-button" onClick={handleSearchClick}>
+              Search
+            </button>
           </div>
-          <ModeToggle />
+          <div className="action-row">
+            <button className="location-button" onClick={handleUseCurrentLocation}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v4l2 2"></path>
+              </svg>
+              My Location
+            </button>
+            <ModeToggle />
+          </div>
         </div>
+        
+        {error && (
+          <div className="error-message">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>{error}</p>
+          </div>
+        )}
+        
         <div className="weather-container">
           {loading ? (
             <div className="loading-indicator">
@@ -155,11 +201,11 @@ const Weather = () => {
           ) : (
             weatherData && (
               <>
-                <div className="current-condition">
-                  {weatherCondition && (
+                {weatherCondition && (
+                  <div className="current-condition">
                     <p>Current weather: <strong>{weatherCondition}</strong></p>
-                  )}
-                </div>
+                  </div>
+                )}
                 <WeatherCard weatherData={weatherData} location={location} />
               </>
             )

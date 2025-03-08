@@ -1,5 +1,11 @@
 .App {
   text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px;
 }
 
 .App-logo {
@@ -35,4 +41,73 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.app-header {
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.app-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.app-subtitle {
+  font-size: 16px;
+  color: #86868b;
+  margin: 8px 0 0 0;
+  font-weight: 400;
+}
+
+.app-footer {
+  margin-top: 40px;
+  font-size: 14px;
+  color: #86868b;
+}
+
+@media (max-width: 640px) {
+  .App {
+    padding: 10px;
+  }
+  
+  .app-title {
+    font-size: 24px;
+  }
+  
+  .app-subtitle {
+    font-size: 14px;
+  }
+}
+
+/* Dark mode adjustments */
+body.sunny .app-title,
+body.cloudy .app-title,
+body.rainy .app-title,
+body.snowy .app-title,
+body.drizzly .app-title,
+body.stormy .app-title,
+body.default-weather .app-title {
+  color: #1d1d1f;
+}
+
+body.sunny .app-subtitle,
+body.cloudy .app-subtitle,
+body.rainy .app-subtitle,
+body.snowy .app-subtitle,
+body.drizzly .app-subtitle,
+body.stormy .app-subtitle,
+body.default-weather .app-subtitle,
+body.sunny .app-footer,
+body.cloudy .app-footer,
+body.rainy .app-footer,
+body.snowy .app-footer,
+body.drizzly .app-footer,
+body.stormy .app-footer,
+body.default-weather .app-footer {
+  color: #86868b;
 }
